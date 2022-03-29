@@ -1,0 +1,25 @@
+limit-num:
+  # 功能开关：是否限制物品附魔类型数量
+  enable: true
+  # 最大附魔种类数量
+  max-num: 5
+  # 是否启用白名单逻辑
+  white-list-mode: true
+  # 若启用白名单 以下附魔种类将不被计算
+  unlimit-enchant:
+    - alldamage
+  # 若关闭白名单 只有以下附魔种类被计算
+  limit-enchant:
+    - alldamage
+
+limit-level:
+  # 功能开关：是否限制物品附魔等级
+  enable: false
+  # 是否启用白名单逻辑
+  white-list-mode: false
+  # 若启用白名单 以下附魔种类将被忽视
+  unlimit-enchant:
+    - alldamage
+  # 若关闭白名单 只有以下附魔种类被计算
+  limit-enchant:
+    - alldamage
