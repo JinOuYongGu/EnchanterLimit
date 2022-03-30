@@ -1,4 +1,4 @@
-package me.jinou.sfenchanterlimit;
+package me.jinou.EnchantLimit;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,7 +15,7 @@ public class PluginCmd implements CommandExecutor {
         String reloadCmd = "reload";
         if (sender.isOp() && args[0].equalsIgnoreCase(reloadCmd)) {
             PluginConfig.reloadConfig();
-            sender.sendMessage("SfEnchanterLimit 重载完成");
+            sender.sendMessage("EnchantLimit 重载完成");
         }
         return false;
     }

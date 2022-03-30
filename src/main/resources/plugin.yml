@@ -1,7 +1,7 @@
-name: SfEnchanterLimit
+name: EnchantLimit
 version: '${project.version}'
 author: Jin_ou
-main: me.jinou.sfenchanterlimit.SfEnchanterLimit
+main: me.jinou.EnchantLimit.EnchantLimit
 api-version: 1.18
 depend:
   - Slimefun
