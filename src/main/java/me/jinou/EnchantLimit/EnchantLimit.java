@@ -5,10 +5,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
+import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,7 +35,7 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
 
         Bukkit.getPluginManager().registerEvents(this, this);
         PluginCmd pluginCmd = new PluginCmd();
-        Objects.requireNonNull(Bukkit.getPluginCommand("sfenchanterlimit")).setExecutor(pluginCmd);
+        Objects.requireNonNull(Bukkit.getPluginCommand("EnchantLimit")).setExecutor(pluginCmd);
     }
 
     @Override
@@ -40,6 +44,7 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
 
     /**
      * 判断是否限制粘液科技自动附魔机
+     *
      * @param event 粘液科技自动附魔事件
      */
     @EventHandler
@@ -49,31 +54,84 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
         }
 
         ItemStack enchantItem = event.getItem();
-        if (!canBeEnchant(enchantItem)) {
-            event.setCancelled(true);
+        if (canBeEnchantByNum(enchantItem)) {
+            return;
         }
+
+        event.setCancelled(true);
     }
 
     /**
-     * 判断是否限制原版附魔机制
+     * 限制原版铁砧附魔机制
+     *
      * @param event 原版铁砧附魔事件
      */
     @EventHandler
-    public void onVanillaEnchant(PrepareItemEnchantEvent event) {
+    public void onAnvilEnchant(InventoryClickEvent event) {
         if (!PluginConfig.isEnableVanillaNumLimit()) {
             return;
         }
 
-        ItemStack enchantItem = event.getItem();
-        if (!canBeEnchant(enchantItem)) {
-            event.setCancelled(true);
-            String noticeMsg = PluginConfig.getVanNumLimitReached().replace("%max%", String.valueOf(PluginConfig.getMaxNum()));
-            event.getEnchanter().sendMessage(noticeMsg);
+        Inventory inv = event.getInventory();
+        InventoryType invType = inv.getType();
+        int clickSlot = event.getSlot();
+        if (!(invType == InventoryType.ANVIL && clickSlot == 2)) {
+            return;
         }
+
+        ItemStack enchantItem = event.getInventory().getItem(event.getSlot());
+        if (enchantItem == null || canBeEnchantByNum(enchantItem)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        String noticeMsg = PluginConfig.getVanNumLimitReached().replace("%max%", String.valueOf(PluginConfig.getMaxNum()));
+        event.getWhoClicked().sendMessage(noticeMsg);
     }
 
-    private boolean canBeEnchant(ItemStack itemStack) {
+    private boolean canBeEnchantByNum(ItemStack itemStack) {
         Map<Enchantment, Integer> enchantMap = itemStack.getEnchantments();
-        return enchantMap.size() < PluginConfig.getMaxNum();
+        return enchantMap.size() <= PluginConfig.getMaxNum();
+    }
+
+    /**
+     * 限制原版附魔台附魔机制
+     *
+     * @param event 原版铁砧附魔事件
+     */
+    @EventHandler
+    public void onEnchantInTable(EnchantItemEvent event) {
+        if (!PluginConfig.isEnableVanillaNumLimit()) {
+            return;
+        }
+
+        Map<Enchantment, Integer> enchantsToAdd = event.getEnchantsToAdd();
+        ItemStack itemToBeEnchanted = event.getItem();
+        ItemStack expectResult = getEnchantTableResult(itemToBeEnchanted, enchantsToAdd);
+        if (canBeEnchantByNum(expectResult)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        String noticeMsg = PluginConfig.getVanNumLimitReached().replace("%max%", String.valueOf(PluginConfig.getMaxNum()));
+        event.getEnchanter().sendMessage(noticeMsg);
+    }
+
+    private ItemStack getEnchantTableResult(ItemStack itemToBeEnchanted, Map<Enchantment, Integer> enchantsToAddMap) {
+        Map<Enchantment, Integer> enchantMap = new HashMap<>(itemToBeEnchanted.getEnchantments());
+        for (Enchantment enchantToAdd : enchantsToAddMap.keySet()) {
+            if (!enchantMap.containsKey(enchantToAdd)) {
+                enchantMap.put(enchantToAdd, enchantsToAddMap.get(enchantToAdd));
+            } else {
+                Integer addLevel = enchantsToAddMap.get(enchantToAdd);
+                Integer curLevel = enchantMap.get(enchantToAdd);
+                Integer largerEnchantLevel = addLevel > curLevel ? addLevel : curLevel;
+                enchantMap.put(enchantToAdd, largerEnchantLevel);
+            }
+        }
+
+        ItemStack expectItem = itemToBeEnchanted.clone();
+        expectItem.addEnchantments(enchantMap);
+        return expectItem;
     }
 }

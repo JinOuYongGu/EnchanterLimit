@@ -14,7 +14,7 @@ public class PluginConfig {
     @Getter
     private static boolean enableVanillaNumLimit = false;
     @Getter
-    private static int maxNum = 0;
+    private static int maxNum = 5;
 
     @Getter
     private static String vanNumLimitReached = "";

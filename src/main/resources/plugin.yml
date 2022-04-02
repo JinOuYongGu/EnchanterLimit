@@ -6,5 +6,5 @@ api-version: 1.18
 depend:
   - Slimefun
 commands:
-  sfenchanterlimit:
-    aliases: sel
+  EnchantLimit:
+    aliases: el
