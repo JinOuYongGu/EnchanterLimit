@@ -1,34 +1,13 @@
-# 本插件正在开发初期 请勿将其用于生产环境
-
 limit-num:
   # 功能开关：是否限制物品附魔类型数量
-  enable: true
-  # 是否限制原版附魔
-  limit-vanilla: false
+  slimefun-enable: true
+  # 粘液科技自动附魔机最大附魔种类数量
+  slimefun-enchanter-max-num: 5
+  # 功能开关：是否限制原版附魔
+  limit-vanilla: true
   # 最大附魔种类数量
-  max-num: 5
-  # 是否启用白名单逻辑
-  white-list-mode: true
-  # 若启用白名单 以下附魔种类将不被计算
-  unlimit-enchant:
-    - alldamage
-  # 若关闭白名单 只有以下附魔种类被计算
-  limit-enchant:
-    - alldamage
-
-limit-level:
-  # 功能开关：是否限制物品附魔等级
-  enable: false
-  # 是否限制原版附魔
-  limit-vanilla: false
-  # 是否启用白名单逻辑
-  white-list-mode: false
-  # 若启用白名单 以下附魔种类将被忽视
-  unlimit-enchant:
-    - alldamage
-  # 若关闭白名单 只有以下附魔种类被计算
-  limit-enchant:
-    - alldamage
+  vanilla-max-num: 5
 
 message:
   vanilla-num-limit-reached: "无法附魔 该物品的附魔种类已达上限 %max% 个"
+  slimefun-num-limit-reached: "无法附魔 该物品的附魔种类已达上限 %max% 个"

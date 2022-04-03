@@ -1,15 +1,20 @@
 package me.jinou.EnchantLimit;
 
-import io.github.thebusybiscuit.slimefun4.api.events.AutoEnchantEvent;
+import io.github.thebusybiscuit.slimefun4.api.events.AsyncAutoEnchanterProcessEvent;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
+import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
@@ -43,22 +48,41 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
     }
 
     /**
-     * 判断是否限制粘液科技自动附魔机
+     * 限制粘液科技自动附魔机
      *
      * @param event 粘液科技自动附魔事件
      */
     @EventHandler
-    public void onAutoEnchanterWork(AutoEnchantEvent event) {
-        if (!PluginConfig.isEnableNumLimit()) {
+    public void onAutoEnchanterWork(AsyncAutoEnchanterProcessEvent event) {
+        if (!PluginConfig.isEnableSlimefunNumLimit()) {
             return;
         }
 
         ItemStack enchantItem = event.getItem();
-        if (canBeEnchantByNum(enchantItem)) {
+        ItemStack enchantBook = event.getEnchantedBook();
+        EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) enchantBook.getItemMeta();
+        Map<Enchantment, Integer> availableEnchantOnBook = new HashMap<>(16);
+        for (Map.Entry<Enchantment, Integer> enchantEntry : enchantMeta.getStoredEnchants().entrySet()) {
+            if (enchantEntry.getKey().canEnchantItem(enchantItem)) {
+                availableEnchantOnBook.put(enchantEntry.getKey(), enchantEntry.getValue());
+            }
+        }
+        ItemStack expectResult = getEnchantResult(enchantItem, availableEnchantOnBook);
+        int resultEnchantNum = expectResult.getEnchantments().size();
+        if (resultEnchantNum <= PluginConfig.getMaxNumSlimefun()) {
             return;
         }
 
         event.setCancelled(true);
+        if (!event.getMenu().toInventory().getViewers().isEmpty()) {
+            showSfEnchanterWarning(event.getMenu());
+        }
+    }
+
+    private void showSfEnchanterWarning(BlockMenu menu) {
+        String noticeMsg = PluginConfig.getSfNumLimitReached().replace("%max%", String.valueOf(PluginConfig.getMaxNumSlimefun()));
+        ItemStack progressIcon = new CustomItemStack(Material.BARRIER, " ", noticeMsg);
+        menu.replaceExistingItem(22, progressIcon);
     }
 
     /**
@@ -66,7 +90,7 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
      *
      * @param event 原版铁砧附魔事件
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onAnvilEnchant(InventoryClickEvent event) {
         if (!PluginConfig.isEnableVanillaNumLimit()) {
             return;
@@ -80,18 +104,14 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
         }
 
         ItemStack enchantItem = event.getInventory().getItem(event.getSlot());
-        if (enchantItem == null || canBeEnchantByNum(enchantItem)) {
+        Integer maxEnchantNum = PluginConfig.getMaxNumVanilla();
+        if (enchantItem == null || enchantItem.getEnchantments().size() <= maxEnchantNum) {
             return;
         }
 
         event.setCancelled(true);
-        String noticeMsg = PluginConfig.getVanNumLimitReached().replace("%max%", String.valueOf(PluginConfig.getMaxNum()));
+        String noticeMsg = PluginConfig.getVanNumLimitReached().replace("%max%", String.valueOf(maxEnchantNum));
         event.getWhoClicked().sendMessage(noticeMsg);
-    }
-
-    private boolean canBeEnchantByNum(ItemStack itemStack) {
-        Map<Enchantment, Integer> enchantMap = itemStack.getEnchantments();
-        return enchantMap.size() <= PluginConfig.getMaxNum();
     }
 
     /**
@@ -99,7 +119,7 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
      *
      * @param event 原版铁砧附魔事件
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEnchantInTable(EnchantItemEvent event) {
         if (!PluginConfig.isEnableVanillaNumLimit()) {
             return;
@@ -107,17 +127,17 @@ public final class EnchantLimit extends JavaPlugin implements Listener {
 
         Map<Enchantment, Integer> enchantsToAdd = event.getEnchantsToAdd();
         ItemStack itemToBeEnchanted = event.getItem();
-        ItemStack expectResult = getEnchantTableResult(itemToBeEnchanted, enchantsToAdd);
-        if (canBeEnchantByNum(expectResult)) {
+        ItemStack expectResult = getEnchantResult(itemToBeEnchanted, enchantsToAdd);
+        if (expectResult.getEnchantments().size() <= PluginConfig.getMaxNumVanilla()) {
             return;
         }
 
         event.setCancelled(true);
-        String noticeMsg = PluginConfig.getVanNumLimitReached().replace("%max%", String.valueOf(PluginConfig.getMaxNum()));
+        String noticeMsg = PluginConfig.getVanNumLimitReached().replace("%max%", String.valueOf(PluginConfig.getMaxNumVanilla()));
         event.getEnchanter().sendMessage(noticeMsg);
     }
 
-    private ItemStack getEnchantTableResult(ItemStack itemToBeEnchanted, Map<Enchantment, Integer> enchantsToAddMap) {
+    private ItemStack getEnchantResult(ItemStack itemToBeEnchanted, Map<Enchantment, Integer> enchantsToAddMap) {
         Map<Enchantment, Integer> enchantMap = new HashMap<>(itemToBeEnchanted.getEnchantments());
         for (Enchantment enchantToAdd : enchantsToAddMap.keySet()) {
             if (!enchantMap.containsKey(enchantToAdd)) {

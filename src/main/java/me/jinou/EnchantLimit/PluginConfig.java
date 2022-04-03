@@ -10,21 +10,27 @@ public class PluginConfig {
     private static FileConfiguration fileConfig = null;
 
     @Getter
-    private static boolean enableNumLimit = false;
+    private static boolean enableSlimefunNumLimit = false;
     @Getter
     private static boolean enableVanillaNumLimit = false;
     @Getter
-    private static int maxNum = 5;
+    private static int maxNumVanilla = 5;
+    @Getter
+    private static int maxNumSlimefun = 5;
 
     @Getter
     private static String vanNumLimitReached = "";
+    @Getter
+    private static String sfNumLimitReached = "";
 
     static void loadConfig(FileConfiguration fileConfig) {
         PluginConfig.fileConfig = fileConfig;
-        enableNumLimit = fileConfig.getBoolean("limit-num.enable");
+        enableSlimefunNumLimit = fileConfig.getBoolean("limit-num.slimefun-enable");
         enableVanillaNumLimit = fileConfig.getBoolean("limit-num.limit-vanilla");
-        maxNum = fileConfig.getInt("limit-num.max-num");
+        maxNumVanilla = fileConfig.getInt("limit-num.vanilla-max-num");
+        maxNumSlimefun = fileConfig.getInt("limit-num.slimefun-enchanter-max-num");
         vanNumLimitReached = fileConfig.getString("message.vanilla-num-limit-reached");
+        sfNumLimitReached = fileConfig.getString("message.slimefun-num-limit-reached");
     }
 
     public static void reloadConfig() {
