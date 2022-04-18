@@ -2,8 +2,10 @@ package me.jinou.EnchantLimit;
 
 import lombok.Getter;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
 
 import java.util.List;
+import java.util.Map;
 
 public class PluginConfig {
     private static final EnchantLimit PLUGIN = EnchantLimit.getInstance();
@@ -37,4 +39,34 @@ public class PluginConfig {
         PLUGIN.reloadConfig();
         loadConfig(PLUGIN.getConfig());
     }
+
+	public static String getVanNumLimitReached() {
+		// TODO Auto-generated method stub
+		return vanNumLimitReached;
+	}
+
+	public static boolean isEnableSlimefunNumLimit() {
+		// TODO Auto-generated method stub
+		return enableSlimefunNumLimit;
+	}
+
+	public static int getMaxNumSlimefun() {
+		// TODO Auto-generated method stub
+		return maxNumSlimefun;
+	}
+
+	public static String getSfNumLimitReached() {
+		// TODO Auto-generated method stub
+		return sfNumLimitReached;
+	}
+
+	public static boolean isEnableVanillaNumLimit() {
+		// TODO Auto-generated method stub
+		return enableVanillaNumLimit;
+	}
+
+	public static Integer getMaxNumVanilla() {
+		// TODO Auto-generated method stub
+		return maxNumVanilla;
+	}
 }
